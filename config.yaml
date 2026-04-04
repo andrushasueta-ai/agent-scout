@@ -26,12 +26,12 @@ niches:
       - "Москва"
       - "Санкт-Петербург"
 
-proxies: []
-  # При запуске на VPS прокси не нужен — трафик идёт с IP сервера
-  # Для локального запуска через SSH-туннель:
-  # - host: "localhost"
-  #   port: 1080
-  #   protocol: "socks5"
+proxies:
+  - host: "localhost"
+    port: 1080
+    protocol: "socks5"
+    # SSH-туннель к Selectel (Москва): ssh -D 1080 -f -C -q -N root@111.88.126.97
+    # ОБЯЗАТЕЛЬНО: агент ходит в интернет ТОЛЬКО через московский IP
 
 messaging:
   enabled: true

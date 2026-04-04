@@ -197,7 +197,7 @@ class Orchestrator:
     async def send_messages(
         self,
         platform_name: str,
-        goal: str = "Узнать цены и условия работы",
+        goal: str = "Узнать цены и условия по механизированной штукатурке стен",
         limit: Optional[int] = None,
     ) -> int:
         """Отправить первые сообщения продавцам.

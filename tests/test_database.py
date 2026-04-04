@@ -67,14 +67,14 @@ async def test_create_listing(repo: Repository):
     listing = await repo.create_listing(
         seller_id=seller.id,
         platform="avito",
-        title="Ремонт квартир под ключ",
+        title="Механизированная штукатурка стен",
         url="https://avito.ru/item/123",
-        price="50 000 ₽",
+        price="350 ₽/м2",
         category="Строительство",
         location="Москва",
     )
     assert listing.id is not None
-    assert listing.title == "Ремонт квартир под ключ"
+    assert listing.title == "Механизированная штукатурка стен"
 
     listings = await repo.list_listings(seller_id=seller.id)
     assert len(listings) == 1
@@ -91,11 +91,11 @@ async def test_conversation_and_messages(repo: Repository):
     conv = await repo.create_conversation(
         seller_id=seller.id,
         platform="avito",
-        goal="Узнать цены на ремонт",
+        goal="Узнать цены на механизированную штукатурку",
     )
     assert conv.status == "new"
 
-    msg1 = await repo.add_message(conv.id, "out", "Здравствуйте! Сколько стоит ремонт?")
+    msg1 = await repo.add_message(conv.id, "out", "Здравствуйте! Сколько стоит м2 мех штукатурки?")
     msg2 = await repo.add_message(conv.id, "in", "Добрый день! От 5000 за м2")
 
     messages = await repo.get_conversation_messages(conv.id)

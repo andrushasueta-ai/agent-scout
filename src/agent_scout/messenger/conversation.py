@@ -37,7 +37,7 @@ class ConversationManager:
         seller_id: int,
         seller_url: str,
         platform_name: str,
-        goal: str = "Узнать цены и условия работы",
+        goal: str = "Узнать цены и условия по механизированной штукатурке стен",
     ) -> Optional[int]:
         """Начать новый диалог с продавцом.
 
@@ -101,7 +101,7 @@ class ConversationManager:
         # Проверяем, нужно ли ещё отвечать
         # Получаем goal из БД
         active_convs = await self._repo.get_active_conversations()
-        goal = "Узнать цены и условия работы"
+        goal = "Узнать цены и условия по механизированной штукатурке стен"
         for c in active_convs:
             if c.id == conversation_id:
                 goal = c.goal or goal

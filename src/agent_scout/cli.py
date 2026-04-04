@@ -101,7 +101,7 @@ def messages_check(ctx, platform):
 
 @messages.command("send")
 @click.option("--platform", "-p", default="avito", help="Площадка")
-@click.option("--goal", "-g", default="Узнать цены и условия работы", help="Цель переписки")
+@click.option("--goal", "-g", default="Узнать цены и условия по механизированной штукатурке стен", help="Цель переписки")
 @click.option("--limit", default=None, type=int, help="Максимум сообщений")
 @click.pass_context
 def messages_send(ctx, platform, goal, limit):
