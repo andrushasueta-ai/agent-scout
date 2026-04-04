@@ -6,8 +6,11 @@ import sys
 from pathlib import Path
 
 import click
+from dotenv import load_dotenv
 from rich.console import Console
 from rich.table import Table
+
+load_dotenv()
 
 from agent_scout.config import load_config
 from agent_scout.orchestrator import Orchestrator
