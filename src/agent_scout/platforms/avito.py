@@ -25,42 +25,75 @@ class AvitoPlatform(BasePlatform):
     async def search_listings(
         self, query: str, category: str, location: str, limit: int = 20
     ) -> list[ListingData]:
-        """Поиск объявлений на Авито.
+        """Поиск объявлений на Авито с пагинацией.
 
-        Переходит на страницу поиска, скроллит, парсит карточки.
+        Обходит страницы поиска, собирает ссылки, заходит в каждое
+        объявление для парсинга полного описания и цены.
+        Логин не требуется.
         """
         page = await self._browser.start(self.platform_name)
         listings: list[ListingData] = []
 
         try:
-            # Формируем URL поиска
             location_slug = self._location_to_slug(location)
-            search_url = (
-                f"{self.BASE_URL}/{location_slug}/uslugi"
-                f"?q={quote_plus(query)}"
-            )
-            logger.info("search_start", url=search_url, query=query, location=location)
+            page_num = 1
 
-            await page.goto(search_url, wait_until="domcontentloaded")
-            await self._human.random_delay(2.0, 4.0)
+            while len(listings) < limit:
+                # URL с пагинацией
+                search_url = (
+                    f"{self.BASE_URL}/{location_slug}/uslugi"
+                    f"?q={quote_plus(query)}"
+                )
+                if page_num > 1:
+                    search_url += f"&p={page_num}"
 
-            # Скроллим для загрузки контента
-            await self._human.human_scroll(page, scroll_count=5)
-            await self._human.random_delay(1.0, 2.0)
+                logger.info("search_page", url=search_url, page=page_num)
 
-            # Парсим карточки объявлений
-            cards = await page.query_selector_all('[data-marker="item"]')
-            logger.info("cards_found", count=len(cards))
+                await page.goto(search_url, wait_until="domcontentloaded")
+                await self._human.random_delay(2.0, 4.0)
+                await self._human.human_scroll(page, scroll_count=5)
+                await self._human.random_delay(1.0, 2.0)
 
-            for card in cards[:limit]:
+                # Парсим карточки — получаем ссылки
+                cards = await page.query_selector_all('[data-marker="item"]')
+                logger.info("cards_found", count=len(cards), page=page_num)
+
+                if not cards:
+                    logger.info("no_more_pages")
+                    break
+
+                for card in cards:
+                    if len(listings) >= limit:
+                        break
+                    try:
+                        listing = await self._parse_listing_card(card)
+                        if listing and listing.url:
+                            listings.append(listing)
+                    except Exception as e:
+                        logger.warning("card_parse_error", error=str(e))
+                        continue
+
+                page_num += 1
+                # Пауза между страницами
+                await self._human.random_delay(3.0, 7.0)
+
+            # Заходим в каждое объявление за полным описанием
+            logger.info("enriching_listings", count=len(listings))
+            for i, listing in enumerate(listings):
                 try:
-                    listing = await self._parse_listing_card(card)
-                    if listing:
-                        listings.append(listing)
-                        await self._human.random_delay(0.2, 0.5)
+                    enriched = await self._parse_listing_detail(page, listing.url)
+                    if enriched:
+                        listing.description = enriched.get("description") or listing.description
+                        listing.price = enriched.get("price") or listing.price
+                        listing.seller_name = enriched.get("seller_name") or listing.seller_name
+                        listing.seller_url = enriched.get("seller_url") or listing.seller_url
+                        listing.seller_external_id = enriched.get("seller_id") or listing.seller_external_id
+                    logger.info("listing_enriched", index=i + 1, total=len(listings), title=listing.title[:50])
                 except Exception as e:
-                    logger.warning("card_parse_error", error=str(e))
-                    continue
+                    logger.warning("listing_enrich_error", url=listing.url, error=str(e))
+
+                # Пауза между объявлениями (как живой человек)
+                await self._human.random_delay(3.0, 8.0)
 
             logger.info("search_done", listings_count=len(listings))
 
@@ -68,6 +101,47 @@ class AvitoPlatform(BasePlatform):
             await self._browser.save_session(self.platform_name)
 
         return listings
+
+    async def _parse_listing_detail(self, page, url: str) -> Optional[dict]:
+        """Зайти в объявление и спарсить полное описание, цену, продавца."""
+        await page.goto(url, wait_until="domcontentloaded")
+        await self._human.random_delay(2.0, 4.0)
+
+        result = {}
+
+        # Полное описание
+        desc_el = await page.query_selector(
+            '[data-marker="item-view/item-description"] div, '
+            '[itemprop="description"]'
+        )
+        if desc_el:
+            result["description"] = await desc_el.inner_text()
+
+        # Цена
+        price_el = await page.query_selector(
+            '[data-marker="item-view/item-price"] span, '
+            '[itemprop="price"]'
+        )
+        if price_el:
+            price_val = await price_el.get_attribute("content")
+            if price_val:
+                result["price"] = price_val
+            else:
+                result["price"] = await price_el.inner_text()
+
+        # Имя продавца
+        seller_el = await page.query_selector(
+            '[data-marker="seller-info/name"] a, '
+            '[data-marker="seller-info/name"]'
+        )
+        if seller_el:
+            result["seller_name"] = (await seller_el.inner_text()).strip()
+            href = await seller_el.get_attribute("href")
+            if href:
+                result["seller_url"] = f"{self.BASE_URL}{href}" if href.startswith("/") else href
+                result["seller_id"] = self._extract_seller_id(result["seller_url"])
+
+        return result
 
     async def get_seller_profile(self, seller_url: str) -> SellerData:
         """Получить профиль продавца с его страницы."""

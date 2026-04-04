@@ -58,13 +58,20 @@ class BrowserManager:
     async def start(self, platform: str, headless: Optional[bool] = None) -> Page:
         """Запустить браузер и вернуть страницу.
 
-        Если сессия для площадки не найдена — запускает в headful режиме
-        для ручного логина. Иначе — headless с сохранённой сессией.
+        Если сессия есть — загружает cookies. Если нет — работает без логина
+        (скрапинг объявлений не требует авторизации).
         """
+        # Если браузер уже запущен — вернуть существующую страницу
+        if self._context:
+            pages = self._context.pages
+            if pages:
+                return pages[0]
+            return await self.new_page()
+
         has_session = self._has_session(platform)
 
         if headless is None:
-            headless = has_session and self._config.browser.headless
+            headless = self._config.browser.headless
 
         self._playwright = await async_playwright().start()
 
