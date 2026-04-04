@@ -20,21 +20,39 @@ apt-get install -y -qq python3.11 python3.11-venv python3-pip git autossh \
     libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 \
     libcairo2 libasound2 libxshmfence1 > /dev/null 2>&1
 
-# 2. SSH-ключ для туннеля к Selectel (если ещё нет)
-echo "[2/7] Настройка SSH-ключа для Selectel..."
+# 2. SSH-ключ (один ключ для GitHub + Selectel)
+echo "[2/8] Настройка SSH-ключа..."
 if [ ! -f /root/.ssh/id_ed25519 ]; then
     ssh-keygen -t ed25519 -f /root/.ssh/id_ed25519 -N "" -q
     echo ""
-    echo "  !! ВАЖНО: скопируйте публичный ключ на Selectel:"
-    echo "  ssh-copy-id -i /root/.ssh/id_ed25519.pub root@${SELECTEL_IP}"
-    echo "  (или вручную добавьте в /root/.ssh/authorized_keys на Selectel)"
+    echo "  SSH-ключ сгенерирован. Нужно добавить его в ДВА места:"
     echo ""
-    echo "  После этого запустите deploy.sh ещё раз."
+    echo "  1) GitHub → https://github.com/settings/keys → New SSH key"
+    echo "  2) Selectel → ssh-copy-id root@${SELECTEL_IP}"
+    echo ""
+    echo "  Вот ваш публичный ключ (скопируйте):"
+    echo "  ─────────────────────────────────────────"
     cat /root/.ssh/id_ed25519.pub
+    echo "  ─────────────────────────────────────────"
+    echo ""
+    echo "  После добавления ключа запустите deploy.sh ещё раз."
     exit 1
 fi
 
+# Проверяем доступ к GitHub
+echo "[3/8] Проверка доступа к GitHub..."
+if ! ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
+    echo "  !! Нет SSH-доступа к GitHub"
+    echo "  Добавьте ключ: https://github.com/settings/keys"
+    echo ""
+    echo "  Ваш публичный ключ:"
+    cat /root/.ssh/id_ed25519.pub
+    exit 1
+fi
+echo "  >> GitHub SSH работает"
+
 # Проверяем доступ к Selectel
+echo "[4/8] Проверка доступа к Selectel..."
 if ! ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 root@${SELECTEL_IP} "echo ok" > /dev/null 2>&1; then
     echo "  !! Нет SSH-доступа к Selectel (${SELECTEL_IP})"
     echo "  Скопируйте ключ: ssh-copy-id root@${SELECTEL_IP}"
@@ -42,31 +60,31 @@ if ! ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 root@${SELECTEL_IP} "ec
 fi
 echo "  >> SSH к Selectel работает"
 
-# 3. Клонирование / обновление репозитория
-echo "[3/7] Настройка репозитория в ${APP_DIR}..."
+# 5. Клонирование / обновление репозитория (через SSH)
+echo "[5/8] Настройка репозитория в ${APP_DIR}..."
 if [ -d "$APP_DIR" ]; then
     cd "$APP_DIR"
     git pull origin claude/web-scraper-agent-eown9
 else
     git clone -b claude/web-scraper-agent-eown9 \
-        https://github.com/andrushasueta-ai/agent-scout.git "$APP_DIR"
+        git@github.com:andrushasueta-ai/agent-scout.git "$APP_DIR"
     cd "$APP_DIR"
 fi
 
-# 4. Python venv и зависимости
-echo "[4/7] Установка Python-зависимостей..."
+# 6. Python venv и зависимости
+echo "[6/8] Установка Python-зависимостей..."
 python3.11 -m venv venv
 source venv/bin/activate
 pip install --upgrade pip -q
 pip install -e ".[dev]" -q
 
-# 5. Playwright и Chromium
-echo "[5/7] Установка Playwright Chromium..."
+# 7. Playwright и Chromium
+echo "[7/8] Установка Playwright Chromium..."
 playwright install chromium
 playwright install-deps chromium 2>/dev/null || true
 
-# 6. Файл .env (API-ключ)
-echo "[6/7] Настройка .env..."
+# Файл .env (API-ключ)
+echo "Настройка .env..."
 if [ ! -f .env ]; then
     echo "ANTHROPIC_API_KEY=ВАШ_КЛЮЧ_СЮДА" > .env
     echo "  >> Отредактируйте .env: nano ${APP_DIR}/.env"
@@ -74,8 +92,8 @@ else
     echo "  >> .env уже существует, пропускаю"
 fi
 
-# 7. Создание директорий + systemd-сервисы
-echo "[7/7] Настройка systemd-сервисов..."
+# 8. Создание директорий + systemd-сервисы
+echo "[8/8] Настройка systemd-сервисов..."
 mkdir -p data/sessions
 
 # Сервис SSH-туннеля (autossh — автоматически переподключается)
