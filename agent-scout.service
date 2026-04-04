@@ -1,0 +1,21 @@
+[Unit]
+Description=Agent Scout — конкурентная разведка
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/agent-scout
+Environment=PATH=/opt/agent-scout/venv/bin:/usr/local/bin:/usr/bin
+EnvironmentFile=/opt/agent-scout/.env
+ExecStart=/opt/agent-scout/venv/bin/agent-scout run
+Restart=on-failure
+RestartSec=60
+
+# Логирование
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=agent-scout
+
+[Install]
+WantedBy=multi-user.target
