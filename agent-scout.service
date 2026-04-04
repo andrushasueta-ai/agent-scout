@@ -1,6 +1,7 @@
 [Unit]
 Description=Agent Scout — конкурентная разведка
-After=network.target
+After=network.target socks-tunnel.service
+Requires=socks-tunnel.service
 
 [Service]
 Type=simple

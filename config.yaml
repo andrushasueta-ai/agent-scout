@@ -24,7 +24,6 @@ niches:
     category: "Строительство"
     locations:
       - "Москва"
-      - "Санкт-Петербург"
 
 proxies:
   - host: "localhost"
