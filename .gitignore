@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+data/agent_scout.db
+data/sessions/*.json
+.env
+*.log
+.pytest_cache/
+.mypy_cache/

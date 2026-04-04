@@ -1,0 +1,56 @@
+platforms:
+  avito:
+    enabled: true
+    base_url: "https://www.avito.ru"
+    rate_limit: 25  # страниц в час
+    cooldown_minutes: [30, 120]
+  profi:
+    enabled: false
+    base_url: "https://profi.ru"
+    rate_limit: 20
+    cooldown_minutes: [30, 120]
+  yandex_uslugi:
+    enabled: false
+    base_url: "https://uslugi.yandex.ru"
+    rate_limit: 20
+    cooldown_minutes: [30, 120]
+
+niches:
+  - name: "Ремонт квартир"
+    queries:
+      - "ремонт квартир"
+      - "отделка квартир"
+      - "ремонт под ключ"
+    category: "Строительство"
+    locations:
+      - "Москва"
+      - "Санкт-Петербург"
+
+proxies: []
+  # - host: "proxy1.example.com"
+  #   port: 8080
+  #   username: "user"
+  #   password: "pass"
+
+messaging:
+  enabled: true
+  claude_model: "claude-sonnet-4-6"
+  max_conversations_per_day: 12
+  reply_delay_minutes: [3, 20]
+
+browser:
+  headless: true
+  viewport_width: 1440
+  viewport_height: 900
+  locale: "ru-RU"
+  timezone: "Europe/Moscow"
+
+schedule:
+  work_hours: [9, 22]  # с 9:00 до 22:00 МСК
+  session_duration_minutes: [15, 40]
+  break_duration_minutes: [20, 90]
+  weekend_activity_reduction: 0.4  # снижение на 40%
+
+database:
+  path: "data/agent_scout.db"
+  sessions_dir: "data/sessions"

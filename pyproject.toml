@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-scout"
+version = "0.1.0"
+description = "Инструмент конкурентной разведки для строительных услуг"
+requires-python = ">=3.11"
+dependencies = [
+    "playwright>=1.40",
+    "playwright-stealth>=1.0",
+    "anthropic>=0.40",
+    "sqlalchemy[asyncio]>=2.0",
+    "aiosqlite>=0.19",
+    "pydantic>=2.0",
+    "pyyaml>=6.0",
+    "click>=8.0",
+    "rich>=13.0",
+    "structlog>=23.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "pytest-mock>=3.0",
+]
+
+[project.scripts]
+agent-scout = "agent_scout.cli:cli"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
