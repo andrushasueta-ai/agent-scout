@@ -14,11 +14,16 @@ echo "=== Agent Scout: Деплой на Digital Ocean ==="
 # 1. Системные зависимости
 echo "[1/7] Установка системных пакетов..."
 apt-get update -qq
-apt-get install -y -qq python3.11 python3.11-venv python3-pip git autossh \
+apt-get install -y -qq python3 python3-venv python3-pip git autossh \
+    libnss3 libnspr4 libatk1.0-0t64 libatk-bridge2.0-0t64 libcups2t64 \
+    libdrm2 libdbus-1-3 libxkbcommon0 libatspi2.0-0t64 libxcomposite1 \
+    libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 \
+    libcairo2 libasound2t64 libxshmfence1 2>&1 || \
+apt-get install -y -qq python3 python3-venv python3-pip git autossh \
     libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 \
     libdrm2 libdbus-1-3 libxkbcommon0 libatspi2.0-0 libxcomposite1 \
     libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 \
-    libcairo2 libasound2 libxshmfence1 > /dev/null 2>&1
+    libcairo2 libasound2 libxshmfence1 2>&1 || true
 
 # 2. SSH-ключ (один ключ для GitHub + Selectel)
 echo "[2/8] Настройка SSH-ключа..."
@@ -73,7 +78,7 @@ fi
 
 # 6. Python venv и зависимости
 echo "[6/8] Установка Python-зависимостей..."
-python3.11 -m venv venv
+python3 -m venv venv
 source venv/bin/activate
 pip install --upgrade pip -q
 pip install -e ".[dev]" -q
