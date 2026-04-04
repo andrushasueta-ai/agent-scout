@@ -26,11 +26,11 @@ niches:
       - "Москва"
       - "Санкт-Петербург"
 
-proxies: []
-  # - host: "proxy1.example.com"
-  #   port: 8080
-  #   username: "user"
-  #   password: "pass"
+proxies:
+  - host: "localhost"
+    port: 1080
+    protocol: "socks5"
+    # SSH-туннель: ssh -D 1080 -f -C -q -N root@111.88.126.97
 
 messaging:
   enabled: true

@@ -36,11 +36,12 @@ class ProxyManager:
         """Получить прокси в формате Playwright.
 
         Возвращает None если прокси не настроены (прямое соединение).
+        Поддерживает SOCKS5, HTTP, HTTPS протоколы.
         """
         if not self._current:
             return None
 
-        proxy = {"server": f"http://{self._current.host}:{self._current.port}"}
+        proxy = {"server": f"{self._current.protocol}://{self._current.host}:{self._current.port}"}
         if self._current.username:
             proxy["username"] = self._current.username
         if self._current.password:

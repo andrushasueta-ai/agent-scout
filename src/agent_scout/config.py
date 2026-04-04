@@ -30,6 +30,7 @@ class ProxyConfig(BaseModel):
 
     host: str
     port: int
+    protocol: str = "socks5"  # socks5, http, https
     username: Optional[str] = None
     password: Optional[str] = None
 
@@ -37,8 +38,8 @@ class ProxyConfig(BaseModel):
     def url(self) -> str:
         """Полный URL прокси для Playwright."""
         if self.username and self.password:
-            return f"http://{self.username}:{self.password}@{self.host}:{self.port}"
-        return f"http://{self.host}:{self.port}"
+            return f"{self.protocol}://{self.username}:{self.password}@{self.host}:{self.port}"
+        return f"{self.protocol}://{self.host}:{self.port}"
 
 
 class MessagingConfig(BaseModel):

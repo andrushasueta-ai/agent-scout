@@ -68,6 +68,9 @@ class BrowserManager:
         proxy_config = self._proxy.get_playwright_proxy()
         if proxy_config:
             launch_args["proxy"] = proxy_config
+            logger.info("proxy_enabled", server=proxy_config["server"])
+        elif self._proxy.is_configured:
+            raise RuntimeError("Прокси настроен, но не удалось получить конфигурацию")
 
         self._browser = await self._playwright.chromium.launch(**launch_args)
 
