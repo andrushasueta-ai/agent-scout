@@ -14,6 +14,20 @@ from agent_scout.config import AppConfig
 logger = structlog.get_logger()
 
 
+async def _apply_stealth(page: Page) -> None:
+    """Применить stealth к странице, совместимо с разными версиями библиотеки."""
+    try:
+        from playwright_stealth import stealth_async
+        await stealth_async(page)
+    except ImportError:
+        try:
+            from playwright_stealth import Stealth
+            s = Stealth()
+            await s.apply(page)
+        except Exception:
+            logger.warning("stealth_not_available")
+
+
 class BrowserManager:
     """Управление браузером Playwright с anti-detection.
 
@@ -47,8 +61,6 @@ class BrowserManager:
         Если сессия для площадки не найдена — запускает в headful режиме
         для ручного логина. Иначе — headless с сохранённой сессией.
         """
-        from playwright_stealth import stealth_async
-
         has_session = self._has_session(platform)
 
         if headless is None:
@@ -99,7 +111,7 @@ class BrowserManager:
         page = await self._context.new_page()
 
         # Применить stealth
-        await stealth_async(page)
+        await _apply_stealth(page)
 
         if not has_session:
             logger.info(
@@ -134,10 +146,8 @@ class BrowserManager:
 
     async def new_page(self) -> Page:
         """Открыть новую вкладку в текущем контексте."""
-        from playwright_stealth import stealth_async
-
         if not self._context:
             raise RuntimeError("Браузер не запущен. Вызовите start() сначала.")
         page = await self._context.new_page()
-        await stealth_async(page)
+        await _apply_stealth(page)
         return page
