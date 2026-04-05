@@ -28,7 +28,7 @@ niches:
 proxies:
   - host: "155.212.213.168"
     port: 62455
-    protocol: "http"
+    protocol: "socks5"
     username: "QDy58zcM"
     password: "gamgszEa"
     # Мобильный прокси (Москва)
