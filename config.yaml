@@ -29,7 +29,7 @@ proxies:
   - host: "46.188.82.6"
     port: 7545
     protocol: "http"
-    username: "pyrTeq"
+    username: "nyrTeq"
     password: "yPUVcAepAT1h"
     # Персональный мобильный прокси МегаФон, Москва (proxys.io)
 
