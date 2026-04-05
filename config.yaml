@@ -26,12 +26,12 @@ niches:
       - "Москва"
 
 proxies:
-  - host: "195.19.90.149"
-    port: 30823
+  - host: "46.188.82.6"
+    port: 7545
     protocol: "http"
-    username: "60040992b1"
-    password: "2dcd6009b8"
-    # Мобильный прокси Tele2, Санкт-Петербург (proxys.io)
+    username: "pyrTeq"
+    password: "yPUVcAepAT1h"
+    # Персональный мобильный прокси МегаФон, Москва (proxys.io)
 
 messaging:
   enabled: true
