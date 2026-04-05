@@ -26,11 +26,12 @@ niches:
       - "Москва"
 
 proxies:
-  - host: "localhost"
-    port: 1080
-    protocol: "socks5"
-    # Локальный gost → мобильный прокси (Москва)
-    # Запуск: gost -L :1080 -F socks5://QDy58zcM:gamgszEa@155.212.213.168:62455 &
+  - host: "195.19.90.149"
+    port: 30823
+    protocol: "http"
+    username: "60040992b1"
+    password: "2dcd6009b8"
+    # Мобильный прокси Tele2, Санкт-Петербург (proxys.io)
 
 messaging:
   enabled: true
