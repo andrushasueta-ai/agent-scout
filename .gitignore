@@ -8,6 +8,7 @@ build/
 *.egg
 .venv/
 venv/
+venv_local/
 env/
 data/agent_scout.db
 data/sessions/*.json

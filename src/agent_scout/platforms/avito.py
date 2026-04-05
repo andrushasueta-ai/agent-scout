@@ -1,5 +1,6 @@
 """Скрапер Авито — поиск объявлений и парсинг профилей продавцов."""
 
+import asyncio
 import re
 from typing import Optional
 from urllib.parse import quote_plus
@@ -49,8 +50,8 @@ class AvitoPlatform(BasePlatform):
 
                 logger.info("search_page", url=search_url, page=page_num)
 
-                await page.goto(search_url, wait_until="domcontentloaded", timeout=120000)
-                await self._human.random_delay(2.0, 4.0)
+                if not await self._safe_goto(page, search_url):
+                    break
                 await self._human.human_scroll(page, scroll_count=5)
                 await self._human.random_delay(1.0, 2.0)
 
@@ -104,8 +105,8 @@ class AvitoPlatform(BasePlatform):
 
     async def _parse_listing_detail(self, page, url: str) -> Optional[dict]:
         """Зайти в объявление и спарсить полное описание, цену, продавца."""
-        await page.goto(url, wait_until="domcontentloaded", timeout=120000)
-        await self._human.random_delay(2.0, 4.0)
+        if not await self._safe_goto(page, url):
+            return None
 
         result = {}
 
@@ -306,6 +307,52 @@ class AvitoPlatform(BasePlatform):
         return messages
 
     # --- Вспомогательные методы ---
+
+    async def _handle_block_page(self, page) -> bool:
+        """Обработать страницу блокировки Авито.
+
+        Если Авито показывает 'Доступ ограничен', кликает 'Продолжить'
+        и пытается пройти hCaptcha чекбокс.
+        Возвращает True если удалось пройти, False если нет.
+        """
+        title = await page.title()
+        if "Доступ ограничен" not in title:
+            return True  # Нет блокировки
+
+        logger.warning("avito_block_detected", title=title)
+
+        # Кликаем "Продолжить"
+        btn = await page.query_selector('button:has-text("Продолжить")')
+        if btn:
+            await btn.click()
+            await asyncio.sleep(3)
+
+        # Пытаемся кликнуть чекбокс hCaptcha
+        for frame in page.frames:
+            if "hcaptcha" in frame.url and "checkbox" in frame.url:
+                try:
+                    checkbox = await frame.query_selector("#checkbox")
+                    if checkbox:
+                        await checkbox.click(timeout=10000)
+                        # Ждём результат
+                        for _ in range(6):
+                            await asyncio.sleep(5)
+                            new_title = await page.title()
+                            if "Доступ ограничен" not in new_title:
+                                logger.info("captcha_passed")
+                                return True
+                except Exception as e:
+                    logger.warning("captcha_click_failed", error=str(e))
+                break
+
+        logger.error("captcha_not_solved", hint="IP заблокирован Авито, смените прокси или подождите")
+        return False
+
+    async def _safe_goto(self, page, url: str) -> bool:
+        """Перейти на страницу с обработкой блокировки. Возвращает True если OK."""
+        await page.goto(url, wait_until="domcontentloaded", timeout=120000)
+        await self._human.random_delay(2.0, 4.0)
+        return await self._handle_block_page(page)
 
     async def _parse_listing_card(self, card) -> Optional[ListingData]:
         """Парсинг одной карточки объявления."""

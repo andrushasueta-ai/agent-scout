@@ -17,13 +17,14 @@ logger = structlog.get_logger()
 async def _apply_stealth(page: Page) -> None:
     """Применить stealth к странице, совместимо с разными версиями библиотеки."""
     try:
-        from playwright_stealth import stealth_async
-        await stealth_async(page)
-    except ImportError:
+        from playwright_stealth import Stealth
+        s = Stealth()
+        await s.apply_stealth_async(page)
+        logger.debug("stealth_applied")
+    except Exception:
         try:
-            from playwright_stealth import Stealth
-            s = Stealth()
-            await s.apply(page)
+            from playwright_stealth import stealth_async
+            await stealth_async(page)
         except Exception:
             logger.warning("stealth_not_available")
 
