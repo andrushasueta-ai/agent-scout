@@ -26,12 +26,11 @@ niches:
       - "Москва"
 
 proxies:
-  - host: "155.212.213.168"
-    port: 62455
+  - host: "localhost"
+    port: 1080
     protocol: "socks5"
-    username: "QDy58zcM"
-    password: "gamgszEa"
-    # Мобильный прокси (Москва)
+    # Локальный gost → мобильный прокси (Москва)
+    # Запуск: gost -L :1080 -F socks5://QDy58zcM:gamgszEa@155.212.213.168:62455 &
 
 messaging:
   enabled: true
