@@ -49,7 +49,7 @@ class AvitoPlatform(BasePlatform):
 
                 logger.info("search_page", url=search_url, page=page_num)
 
-                await page.goto(search_url, wait_until="domcontentloaded")
+                await page.goto(search_url, wait_until="domcontentloaded", timeout=120000)
                 await self._human.random_delay(2.0, 4.0)
                 await self._human.human_scroll(page, scroll_count=5)
                 await self._human.random_delay(1.0, 2.0)
@@ -104,7 +104,7 @@ class AvitoPlatform(BasePlatform):
 
     async def _parse_listing_detail(self, page, url: str) -> Optional[dict]:
         """Зайти в объявление и спарсить полное описание, цену, продавца."""
-        await page.goto(url, wait_until="domcontentloaded")
+        await page.goto(url, wait_until="domcontentloaded", timeout=120000)
         await self._human.random_delay(2.0, 4.0)
 
         result = {}
@@ -148,7 +148,7 @@ class AvitoPlatform(BasePlatform):
         page = await self._browser.start(self.platform_name)
 
         try:
-            await page.goto(seller_url, wait_until="domcontentloaded")
+            await page.goto(seller_url, wait_until="domcontentloaded", timeout=120000)
             await self._human.random_delay(2.0, 4.0)
             await self._human.random_page_interaction(page)
 
@@ -220,7 +220,7 @@ class AvitoPlatform(BasePlatform):
         page = await self._browser.start(self.platform_name)
 
         try:
-            await page.goto(seller_url, wait_until="domcontentloaded")
+            await page.goto(seller_url, wait_until="domcontentloaded", timeout=120000)
             await self._human.random_delay(2.0, 4.0)
 
             # Ищем кнопку "Написать сообщение"
@@ -274,7 +274,7 @@ class AvitoPlatform(BasePlatform):
         messages: list[MessageData] = []
 
         try:
-            await page.goto(conversation_url, wait_until="domcontentloaded")
+            await page.goto(conversation_url, wait_until="domcontentloaded", timeout=120000)
             await self._human.random_delay(2.0, 4.0)
 
             # Парсим сообщения в чате
